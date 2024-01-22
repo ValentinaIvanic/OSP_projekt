@@ -1,0 +1,107 @@
+
+Potrebne libraries:
+```{r}
+library(dplyr)
+```
+
+
+Uvoz podataka i prikaz:
+```{r}
+data <- read.csv("../data/complete.csv")
+glimpse(data)
+head(data)
+```
+
+
+Micanje znakova iz komentara:
+```{r}
+data$comments <- gsub("&#\\d+", " ", data$comments)
+glimpse(data)
+head(data, 20)
+```
+
+
+Broj ufo-sightings po državama
+```{r}
+#broj ufo_sightings po državama
+country_counts <- data %>%
+  group_by(country) %>%
+  summarise(total_sightings = n()) %>%
+  arrange(desc(total_sightings))
+
+country_counts 
+
+#broj ufo_sightings gdje je država nepoznata ali ima state
+state_without_country_counts <- data %>%
+  filter(state != "" & country == "")
+
+state_without_country_counts
+
+#broj ufo_sightings gdje nema ni države ni state
+no_country_counts <- data %>%
+  filter(state == "" & country == "")
+
+no_country_counts
+
+#ak ima state onda je us pa dodajemo redu za us
+country_counts <- country_counts %>%
+  mutate(total_sightings = ifelse(country == "us", total_sightings + nrow(state_without_country_counts), total_sightings))
+
+#broj onih koji nemaju ni državu ni state stavljamo u zaseban red
+country_counts <- country_counts %>%
+  mutate(total_sightings = ifelse(country == "", nrow(no_country_counts), total_sightings),
+  country = ifelse(country == "", "NoCountry", country))
+
+
+country_counts
+```
+
+
+Podatci za državu s najviše ufo-sightings
+
+```{r}
+#država s najviše ufo sightings
+most_sightings_country <- country_counts %>%
+  filter(total_sightings == max(total_sightings)) %>%
+  select(country) %>%
+  pull()
+most_sightings_country
+
+#podatci za državu sa najviše ufo-sightings
+data_country_most_sightings <- data %>%
+  filter(country == most_sightings_country)
+head(data_country_most_sightings)
+```
+
+
+Podatci za države po godinama
+
+```{r}
+
+data$datetime <- as.POSIXct(data$datetime, "%m/%d/%Y %H:%M", tz="UTC")
+
+# Extract year from 'datetime'
+data$year <- lubridate::year(data$datetime)
+
+head(data)
+
+
+# po državi i godini
+country_year_counts <- data %>%
+  group_by(country, year) %>%
+  summarise(total_sightings = n())
+
+country_year_counts
+
+#godina s najviše ufo sightings za svaku državu
+most_sightings_per_country <- country_year_counts %>%
+  group_by(country) %>%
+  filter(total_sightings == max(total_sightings)) %>%
+  arrange(country) %>%
+  select(country, year, total_sightings)
+
+most_sightings_per_country
+
+```
+
+
