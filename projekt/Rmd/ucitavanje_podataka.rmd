@@ -1,7 +1,15 @@
 
 Potrebne libraries:
-```{r}
+```{r include=FALSE}
 library(dplyr)
+library(readr)
+library(stringr)
+library(hflights)
+library(tidyr)
+library(lubridate)
+library(gridExtra)
+library(GGally)
+library(RColorBrewer)
 ```
 
 
@@ -83,7 +91,7 @@ data$datetime <- as.POSIXct(data$datetime, "%m/%d/%Y %H:%M", tz="UTC")
 # Extract year from 'datetime'
 data$year <- lubridate::year(data$datetime)
 
-head(data)
+
 
 
 # po državi i godini
@@ -92,6 +100,22 @@ country_year_counts <- data %>%
   summarise(total_sightings = n())
 
 country_year_counts
+
+
+#broj viđenja po državi u svakom desetljeću
+
+country_decade_counts<-country_year_counts
+
+
+country_decade_counts<- country_decade_counts %>%  mutate(decade= 10 * (year %/% 10))
+
+country_decade_counts<- country_decade_counts  %>% group_by(decade,country ) %>%summarize(total_sightings = sum(total_sightings)) %>% ungroup() 
+country_decade_counts$total_sightings<-country_decade_counts$total_sightings 
+
+#ispis
+head(country_decade_counts)
+
+
 
 #godina s najviše ufo sightings za svaku državu
 most_sightings_per_country <- country_year_counts %>%
@@ -103,5 +127,15 @@ most_sightings_per_country <- country_year_counts %>%
 most_sightings_per_country
 
 ```
+```{r}
+#linijski graf država i broja viđenja u njima kroz goidne
+ggplot(country_year_counts,aes(year,total_sightings,color=country)) + geom_line() + scale_y_sqrt()
+
+#stupičasti graf država i broja viđenja kroz desetljeća
+
+ggplot(country_decade_counts %>% filter(decade >= 1950)  ,aes(decade,total_sightings,fill=country)) + geom_col(position = "dodge") +scale_y_sqrt() 
+
+```
+
 
 
