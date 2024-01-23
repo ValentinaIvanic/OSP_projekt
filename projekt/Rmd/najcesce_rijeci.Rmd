@@ -1,0 +1,52 @@
+---
+title: "najcesce_rijeci"
+output: html_document
+date: "2024-01-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("tidyverse")
+library("tidytext")
+library("tm")
+```
+
+Ucitavanje podataka:
+
+```{r}
+data <- read.csv("../data/complete.csv")
+glimpse(data)
+head(data)
+
+data$comments <- gsub("&#\\d+", " ", data$comments)
+glimpse(data)
+head(data, 20)
+```
+
+Izrada "corpusa" od komentara
+
+```{r}
+
+comments <-  data$comments
+
+
+
+rijeci <- data.frame(table(unlist(strsplit(tolower(comments), " "))))
+
+
+# Rename columns for clarity
+colnames(rijeci) <- c("Word", "Freq")
+
+# Remove English stopwords
+stopwords <- stopwords("en")
+rijeci <- rijeci %>%
+  filter(!Word %in% c(stopwords, ""))
+
+
+# Arrange by frequency in descending order
+rijeci <- rijeci %>%
+  arrange(desc(Freq))
+rijeci
+```
+
