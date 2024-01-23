@@ -12,19 +12,29 @@ library("tidytext")
 library("tm")
 ```
 
-Ucitavanje podataka:
+Ucitavanje podataka i čišćenje od znakova:
 
 ```{r}
 data <- read.csv("../data/complete.csv")
-glimpse(data)
 head(data)
 
-data$comments <- gsub("&#\\d+", " ", data$comments)
-glimpse(data)
+data$comments <- gsub("&#\\d+|&quot;|&amp;", " ", data$comments)
+
+
+symbols <- c(",", ".", "/")
+data$comments <- sapply(data$comments, function(comment) {
+  # Remove additional symbols
+  for (symbol in symbols) {
+    comment <- gsub(symbol, " ", comment, fixed = TRUE)
+  }
+  
+  return(comment)
+})
+
 head(data, 20)
 ```
 
-Izrada "corpusa" od komentara
+Izvlacenje rijeci i njihove frekvencije, micanje stopwords
 
 ```{r}
 
