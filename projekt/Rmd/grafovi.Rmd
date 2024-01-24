@@ -1,0 +1,93 @@
+---
+title: "grafovi"
+output: html_document
+date: "2024-01-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# ucitajmo paket za read_csv
+library(readr)
+# ucitajmo paket za vizualizaciju
+library(ggplot2)
+# ucitajmo paket za manipulaciju podacima
+library(dplyr)
+# ucitajmo tidyr
+library(tidyr)
+library(maps)
+library(lubridate)
+```
+
+## Ucitavanje podataka
+
+```{r}
+data <- read_csv("../data/complete.csv")
+#izbacimo nepotreban stupac comments
+data$comments <- NULL
+#pomocu lubridate pretvorimo stupac datetime u format datuma
+data$datetime <- mdy_hm(data$datetime)
+data$longitude <- as.numeric(data$longitude)
+data$latitude <- as.numeric(data$latitude)
+#datoteka sadrzi ufo sihtings
+#stupci su: datetime,city,state,country,shape,duration (seconds),duration (hours/min),comments,date posted,latitude,longitude
+```
+
+## Pregled podataka
+
+```{r}
+head(data)
+```
+
+
+```{r}
+#dodaj stupac day of week use lubridate
+#data$day_of_week <- wday(data$datetime)
+data$day_of_week <- wday(data$datetime, week_start = 1)
+
+
+ggplot(data, aes(x = day_of_week, fill = ..count..)) + geom_bar() + scale_x_continuous(breaks = c(1,2,3,4,5,6,7), labels = c("Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned")) + labs(x = "Dan u tjednu", y = "Broj UFO viđenja", title = "Broj UFO viđenja po danima u tjednu") + scale_fill_gradient(low = "lightgreen", high = "darkgreen")
+```
+
+
+
+```{r}
+# sada napravi isti graf samo cemo koristiti sate u danu
+# dodaj stupac hour_of_day
+data$hour_of_day <- hour(data$datetime)
+ggplot(data, aes(x = hour_of_day, fill = ..count..)) + geom_bar() + labs(x = "Sat u danu", y = "Broj UFO viđenja", title = "Broj UFO viđenja po satima u danu") + scale_fill_gradient(low = "lightgreen", high = "darkgreen") +  scale_x_continuous(breaks =  seq(0, 23, by = 1))
+```
+
+```{r}
+# napravi kartu svijeta na kojoj ce biti prikazane lokacije ufo sihtingsa
+# prvo treba napraviti kartu svijeta
+library(maps)
+mapa <- map_data("world")
+
+# Dodaj stupce za longitude i latitude u podatke
+data$longitude <- as.numeric(data$longitude)
+data$latitude <- as.numeric(data$latitude)
+
+ggplot() +
+  # Prikazi osnovnu kartu svijeta
+  geom_polygon(data = mapa, aes(x = long, y = lat, group = group), fill = "lightblue") +
+  # Dodaj točke za lokacije UFO sittingsa
+  geom_point(data = data, aes(x = longitude, y = latitude), color = "green", alpha = 0.6, size = 2) +
+
+  labs(title = "Lokacije UFO viđenja širom svijeta",
+       x = "Longitude", y = "Latitude") +
+  # Podesi boje i izgled točaka
+  scale_color_manual(values = c("green" = "green")) +
+  scale_fill_manual(values = c("lightblue" = "lightblue")) +
+  # Dodaj lagendu za boje
+  theme(legend.position = "bottom")
+```
+
+```{r}
+# dodaj stupac year
+data$year <- year(data$datetime)
+
+ggplot(data, aes(x = year, fill = ..count..)) + geom_bar() + labs(x = "Godina", y = "Broj UFO viđenja", title = "Broj UFO viđenja po godinama") + scale_fill_gradient(low = "lightgreen", high = "darkgreen") + xlim(c(1949,2015))
+```
+
+
+
