@@ -1,0 +1,54 @@
+
+```{r}
+
+data <- read.csv("../data/complete.csv")
+
+library(ggplot2)
+library(lubridate)
+library(reshape2)
+
+# Assuming 'DateTime' is the name of your datetime column
+data$dateTime <- as.POSIXct(data$datetime, format="%m/%d/%Y %H:%M")
+
+# Extract the year and create a new column
+data$Year <- year(data$dateTime)
+library(ggplot2)
+
+
+
+
+
+
+
+year_shape <- data.frame(
+  year = data$Year,
+  shape = data$shape
+)
+
+year_shape <- year_shape[year_shape$shape != "", , drop = FALSE]
+
+library(ggplot2)
+
+top_shapes <- head(names(sort(table(year_shape$shape), decreasing = TRUE)), 10)
+
+# Create a custom color palette with distinct colors
+my_palette <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+                "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf")
+
+# Filter the data to include only the top 10 shapes
+year_shape_top10 <- year_shape[year_shape$shape %in% top_shapes, ]
+
+# Create a ggplot object using only the top 10 shapes
+ggplot(year_shape_top10, aes(x = year, color = shape)) +
+  geom_freqpoly(binwidth = 1, size = 1.5) +  # Increase the size parameter to make lines thicker
+  scale_color_manual(values = my_palette) +  # Use the custom color palette
+  labs(title = "Distribucija top 10 oblika po godinama",
+       x = "Godina",
+       y = "Broj događaja",
+       color = "Oblik") +
+  theme_minimal()
+guides(color = guide_legend(reverse = TRUE))
+
+ggsave("../figures/Oblici_po_godinama.png")
+```
+

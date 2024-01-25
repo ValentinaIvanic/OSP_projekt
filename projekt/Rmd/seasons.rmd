@@ -1,0 +1,117 @@
+
+```{r}
+
+data <- read.csv("../data/complete.csv")
+glimpse(data)
+tail(data)
+
+```
+NE DELA NEK ME NEKO HBIJE HVALA
+
+
+
+```{r}
+
+library(lubridate)
+library(dplyr)
+
+
+data <- data %>%
+  filter(
+    complete.cases(latitude, datetime) &  # Check for complete cases
+    !is.na(as.numeric(latitude)) &  # Check if latitude can be converted to numeric
+    !is.na(parse_date_time(datetime, orders = "%m/%d/%Y %H:%M"))  # Check if datetime is in the specified format
+  )
+
+data$month_day = format(parse_date_time(data$datetime, orders = "%m/%d/%Y %H:%M"), "%m/%d")
+
+  datum <-  data[8175, 12]
+datum <- lubridate::mdy_hm(paste(datum, "/2000 00:00"))  
+
+datum <- as.Date(datum)
+datum
+
+datum_year <- 2000
+
+# Define season date ranges as POSIXct with time set to midnight
+summer_start <- as.Date("2000-6-21")
+summer_end <- as.Date("2000-09-23")
+autumn_start <- as.Date("2000-09-23")
+autumn_end <- as.Date("2000-12-21")
+winter_start <- as.Date("2000-12-21")
+winter_end <- as.Date("2001-03-21")
+spring_start <- as.Date("2000-03-21")
+spring_end <- as.Date("2000-06-21")
+
+summer_interval <- interval(summer_start, summer_end)
+autumn_interval <- interval(autumn_start, autumn_end)
+winter_interval <- interval(winter_start, winter_end)
+spring_interval <- interval(spring_start, spring_end)
+
+# Function to get season based on date and hemisphere
+get_season <- function(month_day, hemisphere) {
+  
+  date <- lubridate::mdy_hm(paste(month_day, "/2000 00:00"))  
+
+  date <- as.Date(date)
+    # Check the date against the defined ranges and return the corresponding season
+  season <- ifelse(
+    (hemisphere == "northern" & date %within% summer_interval) |
+    (hemisphere == "southern" & date %within% winter_interval),
+    "Summer",
+    ifelse(
+      (hemisphere == "northern" & date %within% autumn_interval) |
+      (hemisphere == "southern" & date %within% spring_interval),
+      "Autumn",
+      ifelse(
+        (hemisphere == "northern" & date %within% winter_interval) |
+        (hemisphere == "southern" & date %within% summer_interval),
+        "Winter",
+        ifelse(
+          (hemisphere == "northern" & date %within% spring_interval) |
+          (hemisphere == "southern" & date %within% autumn_interval),
+          "Spring",
+          "Invalid date or hemisphere"
+        )
+      )
+    )
+  )
+  
+  return(season)
+}
+
+get_hemisphere <- function(latitude) {
+    hemisphere <- ifelse(as.numeric(latitude) >= 0, 'northern', 'southern')
+    return (hemisphere)
+    }
+
+head(data)
+data$hemisphere = get_hemisphere(data$latitude)
+head(data)
+
+data$season = get_season(data$month_day, data$hemisphere)
+
+```
+```{r}
+data
+
+summer_data <- subset(data, season == "Invalid date or hemisphere")
+summer_data
+
+library(ggplot2)
+
+# Set a whitegrid-like theme
+theme_set(theme_minimal())
+
+# Analyze the distribution of sightings across different seasons
+season_counts <- table(data$season)
+
+# Plot the distribution of sightings by season using ggplot2
+ggplot(data = data, aes(x = factor(season), fill = factor(season))) +
+  geom_bar() +
+  labs(title = 'Distribution of Sightings by Season',
+       x = 'Season',
+       y = 'Number of Sightings') +
+  theme_minimal() 
+```
+
