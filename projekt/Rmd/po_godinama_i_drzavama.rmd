@@ -10,6 +10,31 @@ library(lubridate)
 library(gridExtra)
 library(GGally)
 library(RColorBrewer)
+library(forcats)
+
+
+
+us_state_names <- c("al" = "Alabama", "ak" = "Alaska", "az" = "Arizona", "ar" = "Arkansas", "ca" = "California",
+                 "co" = "Colorado", "ct" = "Connecticut", "de" = "Delaware", "fl" = "Florida", "ga" = "Georgia",
+                 "hi" = "Hawaii", "id" = "Idaho", "il" = "Illinois", "in" = "Indiana", "ia" = "Iowa",
+                 "ks" = "Kansas", "ky" = "Kentucky", "la" = "Louisiana", "me" = "Maine", "md" = "Maryland",
+                 "ma" = "Massachusetts", "mi" = "Michigan", "mn" = "Minnesota", "ms" = "Mississippi", "mo" = "Missouri",
+                 "mt" = "Montana", "ne" = "Nebraska", "nv" = "Nevada", "nh" = "New Hampshire", "nj" = "New Jersey",
+                 "nm" = "New Mexico", "ny" = "New York", "nc" = "North Carolina", "nd" = "North Dakota", "oh" = "Ohio",
+                 "ok" = "Oklahoma", "or" = "Oregon", "pa" = "Pennsylvania", "ri" = "Rhode Island", "sc" = "South Carolina",
+                 "sd" = "South Dakota", "tn" = "Tennessee", "tx" = "Texas", "ut" = "Utah", "vt" = "Vermont",
+                 "va" = "Virginia", "wa" = "Washington", "wv" = "West Virginia", "wi" = "Wisconsin", "wy" = "Wyoming")
+
+# Kreiranje rječnika za kanadske provincije i teritorije
+canada_province_names <- c("on" = "Ontario", "bc" = "British Columbia", "ab" = "Alberta", "qc" = "Quebec", "mb" = "Manitoba",
+                 "ns" = "Nova Scotia", "nb" = "New Brunswick", "sk" = "Saskatchewan",
+                 "pq" = "Quebec", "pr" = "Prince Edward Island", "nf" = "Newfoundland",
+                 "nt" = "Northwest Territories", "pe" = "Prince Edward Island", "yt" = "Yukon", "yk" = "Yukon")
+
+# Kreiranje rječnika za druge lokacije koje nisu ni SAD ni Kanada
+other_location_names <- c("dc" = "District of Columbia", "sa" = "South Australia", "vi" = "Virgin Islands")
+
+
 ```
 
 
@@ -25,11 +50,44 @@ Micanje znakova iz komentara:
 ```{r}
 data$comments <- gsub("&#\\d+", " ", data$comments)
 glimpse(data)
-head(data, 20)
+data
+
 ```
 
 
-Broj ufo-sightings po državama
+```{r}
+
+# Funkcija koja će prepoznati državu ili teritorij
+get_country <- function(state, country) {
+  if (!is.na(country) && country != "") {
+    return(tolower(country))
+  } else if (!is.na(state) && tolower(state) %in% names(us_state_names)) {
+    return("us")
+  } else if (!is.na(state) && tolower(state) %in% names(canada_province_names)) {
+    return("ca")
+  } else {
+    return(state)
+  }
+}
+
+
+# Filtriranje podataka
+data <- data %>%
+  mutate(full_state = case_when(
+    tolower(state) %in% names(us_state_names) ~ us_state_names[tolower(state)],
+    tolower(state) %in% names(canada_province_names) ~ canada_province_names[tolower(state)],
+    tolower(state) %in% names(other_location_names) ~ other_location_names[tolower(state)],
+    TRUE ~ state
+  )) %>%
+  mutate(country = mapply(get_country, state, country))
+
+
+data
+
+
+
+```
+
 ```{r}
 #broj ufo_sightings po državama
 country_counts <- data %>%
@@ -50,6 +108,13 @@ no_country_counts <- data %>%
   filter(state == "" & country == "")
 
 no_country_counts
+```
+
+
+
+
+Broj ufo-sightings po državama
+```{r}
 
 #ak ima state onda je us pa dodajemo redu za us
 country_counts <- country_counts %>%
@@ -62,6 +127,52 @@ country_counts <- country_counts %>%
 
 
 country_counts
+
+
+# Assuming country_counts is your data frame
+
+
+country_counts$country <- fct_recode(country_counts$country,
+                                     "SAD" = "us",
+                                     "Nepoznato" = "NoCountry",
+                                     "Kanada" = "ca",
+                                     "Velika Britanija" = "gb",
+                                     "Austrija" = "au",
+                                     "Njemačka" = "de",
+                                     "District of Columbia" = "dc",
+                                     "South Australia" = "sa",
+                                     "Virgin Islands" = "vi")
+
+country_counts$country <- factor(country_counts$country, 
+                                 levels = country_counts$country[order(country_counts$total_sightings, decreasing = TRUE)])
+
+country_counts_without_US <- country_counts[country_counts$country != 'SAD',]
+country_counts_without_US
+
+
+# Create a bar plot
+ggplot(country_counts, aes(x = country, y = total_sightings)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "UFO viđenja po državi",
+       x = "Država",
+       y = "Broj UFO viđenja") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("../figures/UFO_videnja_po_drzavi.jpg")
+
+
+# Create a bar plot
+ggplot(country_counts_without_US, aes(x = country, y = total_sightings)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "UFO viđenja po državi(bez SAD-a)",
+       x = "Država",
+       y = "Broj UFO viđenja") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("../figures/UFO_videnja_po_drzavi_bez_SAD-a.jpg")
+
 ```
 
 
@@ -102,6 +213,17 @@ country_year_counts <- data %>%
 country_year_counts
 
 
+#ak ima state onda je us pa dodajemo redu za us
+country_counts <- country_counts %>%
+  mutate(total_sightings = ifelse(country == "us", total_sightings + nrow(state_without_country_counts), total_sightings))
+
+#broj onih koji nemaju ni državu ni state stavljamo u zaseban red
+country_counts <- country_counts %>%
+  mutate(total_sightings = ifelse(country == "", nrow(no_country_counts), total_sightings),
+  country = ifelse(country == "", "NoCountry", country))
+
+country_year_counts
+
 #broj viđenja po državi u svakom desetljeću
 
 country_decade_counts<-country_year_counts
@@ -125,6 +247,35 @@ most_sightings_per_country <- country_year_counts %>%
   select(country, year, total_sightings)
 
 most_sightings_per_country
+
+
+
+country_decade_counts$country <- fct_recode(country_decade_counts$country,
+                                     "SAD" = "us",
+                                     "Nepoznato" = "NoCountry",
+                                     "Kanada" = "ca",
+                                     "Velika Britanija" = "gb",
+                                     "Austrija" = "au",
+                                     "Njemačka" = "de",
+                                     "District of Columbia" = "dc",
+                                     "South Australia" = "sa",
+                                     "Virgin Islands" = "vi",
+                                     "Nepoznato" = "")
+
+
+country_year_counts$country <- fct_recode(country_year_counts$country,
+                                     "SAD" = "us",
+                                     "Nepoznato" = "NoCountry",
+                                     "Kanada" = "ca",
+                                     "Velika Britanija" = "gb",
+                                     "Austrija" = "au",
+                                     "Njemačka" = "de",
+                                     "District of Columbia" = "dc",
+                                     "South Australia" = "sa",
+                                     "Virgin Islands" = "vi",
+                                     "Nepoznato" = "")
+
+
 
 ```
 ```{r}

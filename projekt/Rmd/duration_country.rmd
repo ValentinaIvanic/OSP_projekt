@@ -1,4 +1,8 @@
 ```{r}
+library(ggplot2)
+library(forcats)
+
+
 data <- read.csv("../data/complete.csv")
 gb_data <- subset(data, country == "gb")
 
@@ -15,16 +19,26 @@ avg_duration_by_country <- aggregate(data$duration_minutes, by=list(data$country
 # Sort the data by average duration
 avg_duration_by_country <- avg_duration_by_country[order(avg_duration_by_country$x),]
 
-# Take the top 10 countries with the lowest average duration
-top_countries <- tail(avg_duration_by_country, 10)
+
+avg_duration_by_country$Group.1 <- fct_recode(avg_duration_by_country$Group.1,
+                                     "SAD" = "us",
+                                     "Nepoznato" = "NoCountry",
+                                     "Kanada" = "ca",
+                                     "Velika Britanija" = "gb",
+                                     "Austrija" = "au",
+                                     "Njemačka" = "de")
+
+
 
 # Plotting
-ggplot(top_countries, aes(x=x, y=Group.1)) +
+ggplot(avg_duration_by_country, aes(x=x, y=Group.1)) +
   geom_bar(stat="identity", fill="skyblue") +
   labs(title="Prosječno trajanje događanja po državi",
        x="Prosječno trajanje događaja (sati)",
        y="Država") +
   theme_minimal()
+ggsave("../figures/trajanje_po_drzavi1.png")
+
 ```
 
 ```{r}
@@ -57,5 +71,7 @@ ggplot(top_countries, aes(x=x, y=Group.1)) +
        x="Prosječno trajanje događaja (minute)",
        y="Država") +
   theme_minimal()
+
+ggsave("../figures/trajanje_po_drzavi2.png")
 ```
 
