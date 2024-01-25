@@ -16,6 +16,9 @@ library(dplyr)
 library(tidyr)
 library(maps)
 library(lubridate)
+library(wordcloud)
+library(RColorBrewer)
+
 ```
 
 ## Ucitavanje podataka
@@ -23,7 +26,7 @@ library(lubridate)
 ```{r}
 data <- read_csv("../data/complete.csv")
 #izbacimo nepotreban stupac comments
-data$comments <- NULL
+#data$comments <- NULL
 #pomocu lubridate pretvorimo stupac datetime u format datuma
 data$datetime <- mdy_hm(data$datetime)
 data$longitude <- as.numeric(data$longitude)
@@ -69,9 +72,10 @@ data$latitude <- as.numeric(data$latitude)
 
 ggplot() +
   # Prikazi osnovnu kartu svijeta
-  geom_polygon(data = mapa, aes(x = long, y = lat, group = group), fill = "lightblue") +
+  #dodaj outline crni 
+  geom_polygon(data = mapa, aes(x = long, y = lat, group = group), fill = "lightgray") +
   # Dodaj točke za lokacije UFO sittingsa
-  geom_point(data = data, aes(x = longitude, y = latitude), color = "green", alpha = 0.6, size = 2) +
+  geom_point(data = data, aes(x = longitude, y = latitude), color = "green", alpha = 0.5) +
 
   labs(title = "Lokacije UFO viđenja širom svijeta",
        x = "Longitude", y = "Latitude") +
@@ -88,6 +92,4 @@ data$year <- year(data$datetime)
 
 ggplot(data, aes(x = year, fill = ..count..)) + geom_bar() + labs(x = "Godina", y = "Broj UFO viđenja", title = "Broj UFO viđenja po godinama") + scale_fill_gradient(low = "lightgreen", high = "darkgreen") + xlim(c(1949,2015))
 ```
-
-
 

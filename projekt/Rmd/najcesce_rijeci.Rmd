@@ -10,6 +10,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library("tidyverse")
 library("tidytext")
 library("tm")
+library(wordcloud2)
+library(wordcloud)
+library(RColorBrewer)
+
 ```
 
 Ucitavanje podataka i čišćenje od znakova:
@@ -19,6 +23,9 @@ data <- read.csv("../data/complete.csv")
 head(data)
 
 data$comments <- gsub("&#\\d+|&quot;|&amp;", " ", data$comments)
+data$comments <- gsub("[[:digit:]]+", " ", data$comments)
+data$comments <- gsub("[\\(\\)]", " ", data$comments)
+
 
 
 symbols <- c(",", ".", "/")
@@ -57,6 +64,20 @@ rijeci <- rijeci %>%
 # Arrange by frequency in descending order
 rijeci <- rijeci %>%
   arrange(desc(Freq))
-rijeci
+#rijeci
 ```
 
+```{r}
+#sada cemo dodati wordcloud
+
+
+wordcloud(rijeci$Word, rijeci$Freq, min.freq = 1, max.words = 100, random.order = FALSE, rot.per = 0.35, colors = brewer.pal(8, "Dark2"))
+```
+
+```{r}
+#koristit UFO.png kao masku
+#figPath <- "UFO.png"
+wordcloud2(rijeci, size = 1.5, color='random-dark')
+#a <- wordcloud2(rijeci, figPath = figPath, size = 1.5, color='random-dark')
+
+```
