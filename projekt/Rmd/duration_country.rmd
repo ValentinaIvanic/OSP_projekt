@@ -1,0 +1,61 @@
+```{r}
+data <- read.csv("../data/complete.csv")
+gb_data <- subset(data, country == "gb")
+
+# Print the subsetted data
+print(gb_data)
+
+data$duration <- as.numeric(data$duration..seconds.)
+
+data$duration_minutes <- data$duration / 60 / 60
+
+# Calculate average duration by country in minutes
+avg_duration_by_country <- aggregate(data$duration_minutes, by=list(data$country), FUN=mean, na.rm=TRUE)
+
+# Sort the data by average duration
+avg_duration_by_country <- avg_duration_by_country[order(avg_duration_by_country$x),]
+
+# Take the top 10 countries with the lowest average duration
+top_countries <- tail(avg_duration_by_country, 10)
+
+# Plotting
+ggplot(top_countries, aes(x=x, y=Group.1)) +
+  geom_bar(stat="identity", fill="skyblue") +
+  labs(title="Prosječno trajanje događanja po državi",
+       x="Prosječno trajanje događaja (sati)",
+       y="Država") +
+  theme_minimal()
+```
+
+```{r}
+data <- read.csv("../data/complete.csv")
+gb_data <- subset(data, country == "gb")
+
+# Print the subsetted data
+print(gb_data)
+
+data$duration <- as.numeric(data$duration..seconds.)
+data_filtered <- data %>%
+  filter(duration <= 60*60*24)
+
+data_filtered$duration_minutes <- data_filtered$duration / 60 
+
+# Calculate average duration by country in minutes
+# Calculate average duration by country in minutes
+avg_duration_by_country <- aggregate(data_filtered$duration_minutes, by=list(data_filtered$country), FUN=mean, na.rm=TRUE)
+
+# Sort the data by average duration
+avg_duration_by_country <- avg_duration_by_country[order(avg_duration_by_country$x),]
+
+# Take the top 10 countries with the lowest average duration
+top_countries <- tail(avg_duration_by_country, 10)
+
+# Plotting
+ggplot(top_countries, aes(x=x, y=Group.1)) +
+  geom_bar(stat="identity", fill="skyblue") +
+  labs(title="Prosječno trajanje događanja po državi",
+       x="Prosječno trajanje događaja (minute)",
+       y="Država") +
+  theme_minimal()
+```
+
