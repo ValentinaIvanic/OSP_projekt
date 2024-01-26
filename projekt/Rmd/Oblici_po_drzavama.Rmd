@@ -43,7 +43,7 @@ top_GB_shapes<-head(names(sort(table(GB_shapes$shape), decreasing = TRUE)), 10)
 
 GB_shapes<-GB_shapes %>% filter(shape %in% top_GB_shapes)
 
-GB_shapes %>%  ggplot(aes(shape, fill = ..count..)) + geom_bar() + scale_fill_gradient(low = "green", high = "blue") + theme_minimal()  + theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") + labs(x="Oblici",y="Broj Događajna",title="Raspored top 10 oblika u VelikojBritaniji")
+GB_shapes %>%  ggplot(aes(shape, fill = ..count..)) + geom_bar() + scale_fill_gradient(low = "green", high = "blue") + theme_minimal()  + theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") + labs(x="Oblici",y="Broj Događajna",title="Raspored top 10 oblika u Velikoj Britaniji")
 
 ggsave("../figures/Oblici_u_VB.png")
 
