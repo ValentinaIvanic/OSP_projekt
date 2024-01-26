@@ -1,0 +1,66 @@
+```{r setup, include=FALSE}
+library(dplyr)
+library(readr)
+library(stringr)
+library(hflights)
+library(tidyr)
+library(lubridate)
+library(gridExtra)
+library(GGally)
+library(RColorBrewer)
+library(forcats)
+```
+
+```{r}
+data <-  read.csv("../data/countries_by_cities.csv")
+head(data)
+
+data$country %>% unique()
+
+```
+```{r}
+#oblici SAD
+
+USA_shapes<-data %>% filter(country=="SAD" & shape!="") %>% select(shape)
+
+top_USA_shapes<-head(names(sort(table(USA_shapes$shape), decreasing = TRUE)), 10)
+
+USA_shapes<-USA_shapes %>% filter(shape %in% top_USA_shapes)
+
+#head(USA_shapes)
+USA_shapes %>%  ggplot(aes(shape, fill = ..count..)) + geom_bar() + scale_fill_gradient(low = "green", high = "blue") + theme_minimal()  + theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") + labs(x="Oblici",y="Broj Događajna",title="Raspored top 10 oblika u SAD-u")
+
+ggsave("../figures/Oblici_u_SAD.png")
+
+```
+```{r}
+#oblicu u Vekikoj britaniji
+GB_shapes<-data %>% filter(country=="Velika Britanija" & shape!="") %>% select(shape)
+
+#head(GB_shapes)
+
+top_GB_shapes<-head(names(sort(table(GB_shapes$shape), decreasing = TRUE)), 10)
+
+GB_shapes<-GB_shapes %>% filter(shape %in% top_GB_shapes)
+
+GB_shapes %>%  ggplot(aes(shape, fill = ..count..)) + geom_bar() + scale_fill_gradient(low = "green", high = "blue") + theme_minimal()  + theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") + labs(x="Oblici",y="Broj Događajna",title="Raspored top 10 oblika u VelikojBritaniji")
+
+ggsave("../figures/Oblici_u_VB.png")
+
+```
+```{r}
+#oblici district of colombia
+Canada_shapes<-data %>% filter(country=="Kanada" & shape!="") %>% select(shape)
+
+top_Canada_shapes<-head(names(sort(table(Canada_shapes$shape), decreasing = TRUE)), 10)
+
+Canada_shapes<-Canada_shapes %>% filter(shape %in% top_Canada_shapes)
+
+Canada_shapes %>%  ggplot(aes(shape, fill = ..count..)) + geom_bar() + scale_fill_gradient(low = "green", high = "blue") + theme_minimal()  + theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") + labs(x="Oblici",y="Broj Događajna",title="Raspored top 10 oblika u Kanadi")
+
+
+ggsave("../figures/Oblici_u_Kanadi.png")
+
+```
+
+
