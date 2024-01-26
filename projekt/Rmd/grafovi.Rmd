@@ -18,6 +18,7 @@ library(maps)
 library(lubridate)
 library(wordcloud)
 library(RColorBrewer)
+library(hydroTSM)
 
 ```
 
@@ -91,5 +92,12 @@ ggplot() +
 data$year <- year(data$datetime)
 
 ggplot(data, aes(x = year, fill = ..count..)) + geom_bar() + labs(x = "Godina", y = "Broj UFO viđenja", title = "Broj UFO viđenja po godinama") + scale_fill_gradient(low = "lightgreen", high = "darkgreen") + xlim(c(1949,2015))
+```
+```{r}
+# napravi po sezonama
+# dodaj stupac season
+data$season <-time2season(data$datetime,out.fmt = "seasons")
+
+ggplot(data, aes(x = season, fill = ..count..)) + geom_bar() + labs(x = "Godišnje doba", y = "Broj UFO viđenja", title = "Broj UFO viđenja po godišnjim dobima") + scale_fill_gradient(low = "lightgreen", high = "darkgreen") + scale_x_discrete(labels = c("Jesen", "Proljeće", "Ljeto", "Zima"))
 ```
 
