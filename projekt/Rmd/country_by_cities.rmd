@@ -7,86 +7,217 @@ library(ggplot2)
 
 
 ```{r}
-
-us_state_names <- c("al" = "Alabama", "ak" = "Alaska", "az" = "Arizona", "ar" = "Arkansas", "ca" = "California",
-                 "co" = "Colorado", "ct" = "Connecticut", "de" = "Delaware", "fl" = "Florida", "ga" = "Georgia",
-                 "hi" = "Hawaii", "id" = "Idaho", "il" = "Illinois", "in" = "Indiana", "ia" = "Iowa",
-                 "ks" = "Kansas", "ky" = "Kentucky", "la" = "Louisiana", "me" = "Maine", "md" = "Maryland",
-                 "ma" = "Massachusetts", "mi" = "Michigan", "mn" = "Minnesota", "ms" = "Mississippi", "mo" = "Missouri",
-                 "mt" = "Montana", "ne" = "Nebraska", "nv" = "Nevada", "nh" = "New Hampshire", "nj" = "New Jersey",
-                 "nm" = "New Mexico", "ny" = "New York", "nc" = "North Carolina", "nd" = "North Dakota", "oh" = "Ohio",
-                 "ok" = "Oklahoma", "or" = "Oregon", "pa" = "Pennsylvania", "ri" = "Rhode Island", "sc" = "South Carolina",
-                 "sd" = "South Dakota", "tn" = "Tennessee", "tx" = "Texas", "ut" = "Utah", "vt" = "Vermont",
-                 "va" = "Virginia", "wa" = "Washington", "wv" = "West Virginia", "wi" = "Wisconsin", "wy" = "Wyoming")
-
-# Kreiranje rječnika za kanadske provincije i teritorije
-canada_province_names <- c("on" = "Ontario", "bc" = "British Columbia", "ab" = "Alberta", "qc" = "Quebec", "mb" = "Manitoba",
-                 "ns" = "Nova Scotia", "nb" = "New Brunswick", "sk" = "Saskatchewan",
-                 "pq" = "Quebec", "pr" = "Prince Edward Island", "nf" = "Newfoundland",
-                 "nt" = "Northwest Territories", "pe" = "Prince Edward Island", "yt" = "Yukon", "yk" = "Yukon")
-
-# Kreiranje rječnika za druge lokacije koje nisu ni SAD ni Kanada
-other_location_names <- c("dc" = "District of Columbia", "sa" = "South Australia", "vi" = "Virgin Islands")
-
+library(forcats)
 
 data <- read.csv("../data/complete.csv")
-
 ```
 
 
 
 
 ```{r}
-
-# Funkcija koja će prepoznati državu ili teritorij
-get_country <- function(state) {
-  if (tolower(state) %in% names(us_state_names)) {
-    return("us")
-  } else if (tolower(state) %in% names(canada_province_names)) {
-    return("ca")
-  } else {
-    return(state)
-  }
-}
-
-# Filtriranje podataka
-data <- data %>%
-  filter(state != "Nepoznato" & state != "") %>%
-  mutate(full_state = case_when(
-    tolower(state) %in% names(us_state_names) ~ us_state_names[tolower(state)],
-    tolower(state) %in% names(canada_province_names) ~ canada_province_names[tolower(state)],
-    tolower(state) %in% names(other_location_names) ~ other_location_names[tolower(state)],
-    TRUE ~ state
-  )) %>%
-  mutate(country = sapply(state, get_country))
-
-
 data
 
-```
 
-```{r}
-data
+data$country[data$country == "us"] <-  "SAD"
+data$country[data$country == "au"] <-  "Australija"
+data$country[data$country == "de"] <-  "Njemačka"
+data$country[data$country == "ca"] <-  "Kanada"
+data$country[data$country == "gb"] <-  "Velika Britanija"
 
-data$country[grep("washington", data$city)] <-  "us"
+
+
+data$country[grep("washington", data$city)] <-  "SAD"
 data
 ```
 ```{r}
-data$country[grep("(canada)", data$city)] <- "ca"
-data$country[grep("(australia)", data$city)] <- "australia"
+data$country[grep("(canada)", data$city)] <- "Kanada"
+data$country[grep("(australia)", data$city)] <- "Australija"
 data$country[grep("(venezuela)", data$city)] <- "venezuela"
-data$country[grep("(south africa)", data$city)] <- "south africa"
-data$country[grep("(denmark)", data$city)] <- "denmark"
-data$country[grep("(u. s.)", data$city)] <- "us"
-data$country[data$city == "georgetown"] <- "Guyana"
+data$country[grep("(south africa)", data$city)] <- "JAR"
+data$country[grep("(denmark)", data$city)] <- "Danska"
+data$country[grep("u. s.", data$city)] <- "SAD"
+data$country[grep("u.s.", data$city)] <- "SAD"
+
+data$country[data$city == "georgetown"] <- "Gvajana"
 data$country[data$city == "na"] <- "Nepoznato"
 data$country[grep("puerto rico", data$city)] <- "Puerto Rico"
 
 
+us_states <- c("al", "ak", "az", "ar", "ca", "co", "ct", "de", "fl", "ga", "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me", "md", "ma", "mi", "mn", "ms", "mo", "mt", "ne", "nv", "nh", "nj", "nm", "ny", "nc", "nd", "oh", "ok", "or", "pa", "ri", "sc", "sd", "tn", "tx", "ut", "vt", "va", "wa", "wv", "wi", "wy")
+
+# Ažuriramo country na "us" za sve stateove u SAD-u
+data$country[data$state %in% us_states] <- "SAD"
 data
 
-write.csv(data, "../data/countries_by_cities", row.names = FALSE)
+
+```
+```{r}
+data$country[grep("(new zealand)", data$city)] <- "Novi Zeland"
+data$country[grep("(russia)", data$city)] <- "Rusija"
+data$country[grep("(italy)", data$city)] <- "Italija"
+data$country[grep("uk", data$city)] <- "Velika Britanija"
+data$country[grep("(lithuania)", data$city)] <- "Lituanija"
+data$country[grep("(norway)", data$city)] <- "Norveška"
+data$country[grep("(japan)", data$city)] <- "Japan"
+data$country[grep("(austria)", data$city)] <- "Austrija"
+data$country[grep("(sweden)", data$city)] <- "Švedska"
+data$country[grep("(mexico)", data$city)] <- "Meksiko"
+data$country[grep("(iceland)", data$city)] <- "Island"
+data$country[grep("(peru)", data$city)] <- "Peru"
+data$country[grep("(norway)", data$city)] <- "Norveška"
+
+data
+```
+
+```{r}
+
+data$country[grep("(turkey)", data$city)] <- "Turska"
+data$country[grep("(caribbean)", data$city)] <- "Karibi"
+data$country[grep("(belgium)", data$city)] <- "Belgija"
+data$country[grep("(china)", data$city)] <- "Kina"
+data$country[grep("(france)", data$city)] <- "Francuska"
+data$country[grep("(greece)", data$city)] <- "Grčka"
+
+
+data$country[grep("(china)", data$city)] <- "Kina"
+data$country[grep("(france)", data$city)] <- "Francuska"
+data$country[grep("(greece)", data$city)] <- "Grčka"
+data$country[grep("(china)", data$city)] <- "Kina"
+data$country[grep("(france)", data$city)] <- "Francuska"
+data$country[grep("(greece)", data$city)] <- "Grčka"
+
+data$country[grep("viet nam", data$city)] <- "Vijetnam"
+data$country[grep("(malaysia)", data$city)] <- "Malezija"
+data$country[grep("iraq", data$city)] <- "Irak"
+
+data$country[grep("(armenia)", data$city)] <- "Armenija"
+data$country[grep("hong kong", data$city)] <- "Kina"
+data$country[grep("(greece)", data$city)] <- "Grčka"
+
+data$country[grep("chile", data$city)] <- "Čile"
+data$country[grep("dublin ", data$city)] <- "Irska"
+data$country[grep("indonesia", data$city)] <- "Indonezija"
+data$country[grep("thailand", data$city)] <- "Tajland"
+data$country[grep("portugal", data$city)] <- "Portugal"
+
+
+data$country[grep("hungary", data$city)] <- "Mađarska"
+data$country[grep("india", data$city)] <- "Indija"
+data$country[grep("spain", data$city)] <- "Španjolska"
+data$country[grep("ireland", data$city)] <- "Irska"
+data$country[grep("philippines", data$city)] <- "Filipini"
+data$country[grep("afghanistan", data$city)] <- "Afganistan"
+data$country[grep("iran", data$city)] <- "Iran"
+data$country[grep("pakistan", data$city)] <- "Pakistan"
+data$country[grep("taiwan", data$city)] <- "Tajvan"
+
+
+data$country[grep("swaziland", data$city)] <- "Svazi"
+data$country[grep("perth-andover", data$city)] <- "Kanada"
+data$country[grep("saudi arabia", data$city)] <- "Saudijska Arabija"
+data$country[grep("germany", data$city)] <- "Njemačka"
+data$country[grep("morocco", data$city)] <- "Moroko"
+data$country[grep("romania", data$city)] <- "Rumunjska"
+data$country[grep("split ", data$city)] <- "Hrvatska"
+data$country[grep("tenerife", data$city)] <- "Španjolska"
+data$country[grep("israel", data$city)] <- "Izreal"
+data$country[grep("egypt", data$city)] <- "Egipt"
+data$country[grep("poland", data$city)] <- "Poljska"
+data$country[grep("cyprus", data$city)] <- "Cipar"
+data$country[grep("gaia", data$city)] <- "Portugal"
+
+
+data$country[grep("south korea", data$city)] <- "Južna Koreja"
+data$country[grep("costa rica", data$city)] <- "Kostarika"
+data$country[grep("san carlos", data$city)] <- "SAD"
+data$country[grep("anguilla", data$city)] <- "Velika Britanija"
+data$country[grep("netherlands", data$city)] <- "Nizozemska"
+data$country[grep("honduras", data$city)] <- "Honduras"
+data$country[grep("albania", data$city)] <- "Albanija"
+data$country[grep("dominican republic", data$city)] <- "Dominikanska Republika"
+
+
+data
+
+```
+
+```{r}
+
+data$country[grep("colombia", data$city)] <- "Kolumbija"
+data$country[grep("vrsac ", data$city)] <- "Srbija"
+data$country[grep("bloemfontein ", data$city)] <- "JAR"
+data$country[grep("cali", data$city)] <- "Kolumbija"
+data$country[grep("bangladesh", data$city)] <- "Bangladeš"
+data$country[grep("cuba ", data$city)] <- "Kuba"
+data$country[grep("jamaica", data$city)] <- "Jamajka"
+data$country[grep("argentina", data$city)] <- "Argentina"
+
+data$country[grep("macedonia", data$city)] <- "Makedonija"
+data$country[grep("finland", data$city)] <- "Finska"
+data$country[grep("switzerland", data$city)] <- "Švicarska"
+data$country[grep("czech", data$city)] <- "Češka"
+data$country[grep("brazil", data$city)] <- "Brazil"
+data$country[grep("sri lanka", data$city)] <- "Šri Lanka"
+data$country[grep("tuvalu", data$city)] <- "Tuvalu"
+data$country[grep("al warqaa", data$city)] <- "UAE"
+data$country[grep("bahrain", data$city)] <- "Bahrein"
+
+
+data$country[grep("belize", data$city)] <- "Belize"
+data$country[grep("kuwait", data$city)] <- "Kuvajt"
+data$country[grep("bahamas", data$city)] <- "Bahami"
+data$country[grep("singapore", data$city)] <- "Singapor"
+data$country[grep("bulgaria", data$city)] <- "Bugarska"
+data$country[grep("lebanon", data$city)] <- "Libanon"
+data$country[grep("slovakia", data$city)] <- "Slovačka"
+data$country[grep("algeria", data$city)] <- "Alžir"
+data$country[grep("tunisia", data$city)] <- "Tunis"
+
 ```
 
 
+
+
+
+
+
+
+A
+```{r}
+
+
+data$country[grep("syria", data$city)] <- "Sirija"
+data$country[grep("colorado", data$city)] <- "SAD"
+data$country[grep("prishtina", data$city)] <- "Kosovo"
+data$country[grep("libya", data$city)] <- "Libija"
+data$country[grep("malmesbury", data$city)] <- "Velika Britanija"
+data$country[grep("houston", data$city)] <- "SAD"
+data$country[grep("bosnia", data$city)] <- "BIH"
+
+
+data$country[grep("gillingham", data$city)] <- "Velika Britanija"
+data$country[grep("usa", data$city)] <- "SAD"
+data$country[grep("barrigada", data$city)] <- "SAD"
+data$country[grep("bridgend", data$city)] <- "Velika Britanija"
+data$country[grep("nepal", data$city)] <- "Nepal"
+data$country[grep("uzbekistan", data$city)] <- "Uzbekistan"
+data$country[grep("palestine", data$city)] <- "Palestinaa"
+data$country[grep("pristina", data$city)] <- "Kosovo"
+
+
+data$country[grep("kenya", data$city)] <- "Kenija"
+data$country[grep("syria", data$city)] <- "Sirija"
+data$country[grep("colorado ", data$city)] <- "SAD"
+data$country[grep("pristina  ", data$city)] <- "Kosovo"
+
+
+```
+
+
+```{r}
+data
+
+
+```
 

@@ -1,32 +1,19 @@
 ```{r}
 library(dplyr)
+library(ggplot2)
 
 us_state_names <- c("al" = "Alabama", "ak" = "Alaska", "az" = "Arizona", "ar" = "Arkansas", "ca" = "California",
-                 "co" = "Colorado", "ct" = "Connecticut", "de" = "Delaware", "fl" = "Florida", "ga" = "Georgia",
+                 "co" = "Colorado", "ct" = "Connecticut", "dc"="Washington D.C.", "de" = "Delaware", "fl" = "Florida", "ga" = "Georgia",
                  "hi" = "Hawaii", "id" = "Idaho", "il" = "Illinois", "in" = "Indiana", "ia" = "Iowa",
                  "ks" = "Kansas", "ky" = "Kentucky", "la" = "Louisiana", "me" = "Maine", "md" = "Maryland",
                  "ma" = "Massachusetts", "mi" = "Michigan", "mn" = "Minnesota", "ms" = "Mississippi", "mo" = "Missouri",
-                 "mt" = "Montana", "ne" = "Nebraska", "nv" = "Nevada", "nh" = "New Hampshire", "nj" = "New Jersey",
+                 "mt" = "Montana", "nb" = "Nebraska", "ne" = "Nebraska", "nv" = "Nevada", "nh" = "New Hampshire", "nj" = "New Jersey",
                  "nm" = "New Mexico", "ny" = "New York", "nc" = "North Carolina", "nd" = "North Dakota", "oh" = "Ohio",
                  "ok" = "Oklahoma", "or" = "Oregon", "pa" = "Pennsylvania", "ri" = "Rhode Island", "sc" = "South Carolina",
-                 "sd" = "South Dakota", "tn" = "Tennessee", "tx" = "Texas", "ut" = "Utah", "vt" = "Vermont",
+                 "sd" = "South Dakota", "tn" = "Tennessee", "tx" = "Texas", "ut" = "Utah",  "vi" = "Virgin Islands", "vt" = "Vermont",
                  "va" = "Virginia", "wa" = "Washington", "wv" = "West Virginia", "wi" = "Wisconsin", "wy" = "Wyoming")
 
-# Kreiranje rječnika za kanadske provincije i teritorije
-canada_province_names <- c("on" = "Ontario", "bc" = "British Columbia", "ab" = "Alberta", "qc" = "Quebec", "mb" = "Manitoba",
-                 "ns" = "Nova Scotia", "nb" = "New Brunswick", "sk" = "Saskatchewan",
-                 "pq" = "Quebec", "pr" = "Prince Edward Island", "nf" = "Newfoundland",
-                 "nt" = "Northwest Territories", "pe" = "Prince Edward Island", "yt" = "Yukon", "yk" = "Yukon")
-
-# Kreiranje rječnika za druge lokacije koje nisu ni SAD ni Kanada
-other_location_names <- c("dc" = "District of Columbia", "sa" = "South Australia", "vi" = "Virgin Islands")
-
-
-data <- read.csv("../data/complete.csv")
-
-
-
-
+data <- read.csv("../data/countries_by_cities.csv")
 
 ```
 
@@ -35,16 +22,9 @@ data <- read.csv("../data/complete.csv")
 
 ```{r}
 
-# Funkcija koja će prepoznati državu ili teritorij
-get_country <- function(state) {
-  if (tolower(state) %in% names(us_state_names)) {
-    return("us")
-  } else if (tolower(state) %in% names(canada_province_names)) {
-    return("ca")
-  } else {
-    return(state)
-  }
-}
+
+data <- data[data$country == 'us',]
+
 
 # Filtriranje podataka
 data <- data %>%
@@ -60,7 +40,6 @@ data <- data %>%
 
 data
 
-data <- data[data$country == 'us',]
 data
 
 ```
@@ -89,17 +68,39 @@ state_counts_filtered <- state_counts_filtered  %>%
 
 
 state_counts_filtered
+
+state_counts_filtered <- state_counts_filtered %>%
+  arrange(desc(n)) 
 ```
 ```{r}
 
 ggplot(state_counts_filtered, aes(x = reorder(state, n), y = n)) +
   geom_bar(stat = "identity", fill = "skyblue") +
-  labs(title = "Broj nečega po državama",
+  labs(title = "Broj viđenja po državama u SAD-u",
        x = "Država",
-       y = "Broj nečega") +
-  scale_x_discrete(expand = expansion(add = -10)) +  # Dodajemo dodatan razmak između oznaka na x-osi
+       y = "Broj viđenja") +
+  scale_x_discrete(expand = expansion(add = 0)) +  # Dodajemo dodatan razmak između oznaka na x-osi
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 0.9))
+
+ggsave("../figures/broj_videnja_po_stateu.jpg")
+```
+```{r}
+top_10_states <- head(state_counts_filtered, 10)
+
+top_10_states$state <- factor(top_10_states$state, levels = top_10_states$state)
+
+# Plot graph
+ggplot(top_10_states, aes(x = state, y = n)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "Top 10 Država u SAD-u po viđenjima",
+       x = "Država",
+       y = "Broj viđenja") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggsave("../figures/broj_videnja_po_stateu_TOP10.jpg")
+
 ```
 
 
