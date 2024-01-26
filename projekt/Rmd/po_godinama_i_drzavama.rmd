@@ -233,7 +233,7 @@ ggsave("../figures/Broj_videnja_desetljecu_podrzavi.png")
 # razodvlje utreke izmedu sad-a i sssr-a  
 country_year_counts %>% filter(year>=1960 & year<=1980 ) %>% ggplot(aes(year,total_sightings,color=country)) + geom_line(size = 1) + scale_y_sqrt() + labs(x="Godina",y="Ukupan broj viđenja",color="Država",title = "Broj viđenja u godini po državama u razdoblju 1960-80") + theme_minimal()
 
-ggsave("../figures/Broj_videnja_60/80_po_drzavi.png")
+ggsave("../figures/Broj_videnja_60-80_po_drzavi.png")
 ```
 
 
