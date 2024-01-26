@@ -23,7 +23,7 @@ data <- read.csv("../data/countries_by_cities.csv")
 ```{r}
 
 
-data <- data[data$country == 'us',]
+data <- data[data$country == 'SAD',]
 
 
 # Filtriranje podataka
@@ -97,7 +97,7 @@ ggplot(top_10_states, aes(x = state, y = n)) +
        x = "Država",
        y = "Broj viđenja") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave("../figures/broj_videnja_po_stateu_TOP10.jpg")
 
