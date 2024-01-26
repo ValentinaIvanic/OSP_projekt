@@ -218,6 +218,5 @@ data$country[grep("pristina  ", data$city)] <- "Kosovo"
 ```{r}
 data
 
-
+write.csv(data, "../data/countries_by_cities.csv")
 ```
-

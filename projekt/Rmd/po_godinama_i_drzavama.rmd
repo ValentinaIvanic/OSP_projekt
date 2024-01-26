@@ -40,7 +40,7 @@ other_location_names <- c("dc" = "District of Columbia", "sa" = "South Australia
 
 Uvoz podataka i prikaz:
 ```{r}
-data <- read.csv("../data/complete.csv")
+data <- read.csv("../data/countries_by_cities.csv")
 glimpse(data)
 head(data)
 ```
@@ -55,40 +55,11 @@ data
 ```
 
 
+
+
 ```{r}
 
-# Funkcija koja će prepoznati državu ili teritorij
-get_country <- function(state, country) {
-  if (!is.na(country) && country != "") {
-    return(tolower(country))
-  } else if (!is.na(state) && tolower(state) %in% names(us_state_names)) {
-    return("us")
-  } else if (!is.na(state) && tolower(state) %in% names(canada_province_names)) {
-    return("ca")
-  } else {
-    return(state)
-  }
-}
-
-
-# Filtriranje podataka
-data <- data %>%
-  mutate(full_state = case_when(
-    tolower(state) %in% names(us_state_names) ~ us_state_names[tolower(state)],
-    tolower(state) %in% names(canada_province_names) ~ canada_province_names[tolower(state)],
-    tolower(state) %in% names(other_location_names) ~ other_location_names[tolower(state)],
-    TRUE ~ state
-  )) %>%
-  mutate(country = mapply(get_country, state, country))
-
-
-data
-
-
-
-```
-
-```{r}
+data$country[data$city == '' & data$country == '' & !(is.numeric(as.numeric(data$latitude)) & is.numeric(as.numeric(data$longitude)))] <- "Nepoznato"
 #broj ufo_sightings po državama
 country_counts <- data %>%
   group_by(country) %>%
@@ -113,47 +84,39 @@ no_country_counts
 
 
 
+AA
+```{r}
+head(country_counts)
+
+country_counts <- country_counts[country_counts$country != '',]
+
+country_counts_TOP10 <- head(country_counts, 10)
+
+country_counts_TOP10
+```
+
+AA
+
+
+
+
 Broj ufo-sightings po državama
 ```{r}
-
-#ak ima state onda je us pa dodajemo redu za us
-country_counts <- country_counts %>%
-  mutate(total_sightings = ifelse(country == "us", total_sightings + nrow(state_without_country_counts), total_sightings))
-
-#broj onih koji nemaju ni državu ni state stavljamo u zaseban red
-country_counts <- country_counts %>%
-  mutate(total_sightings = ifelse(country == "", nrow(no_country_counts), total_sightings),
-  country = ifelse(country == "", "NoCountry", country))
+# Assuming country_counts_TOP10 is your data frame
 
 
-country_counts
 
+country_counts_TOP10$country <- factor(country_counts_TOP10$country, 
+                                 levels = country_counts_TOP10$country[order(country_counts_TOP10$total_sightings, decreasing = TRUE)])
 
-# Assuming country_counts is your data frame
-
-
-country_counts$country <- fct_recode(country_counts$country,
-                                     "SAD" = "us",
-                                     "Nepoznato" = "NoCountry",
-                                     "Kanada" = "ca",
-                                     "Velika Britanija" = "gb",
-                                     "Austrija" = "au",
-                                     "Njemačka" = "de",
-                                     "District of Columbia" = "dc",
-                                     "South Australia" = "sa",
-                                     "Virgin Islands" = "vi")
-
-country_counts$country <- factor(country_counts$country, 
-                                 levels = country_counts$country[order(country_counts$total_sightings, decreasing = TRUE)])
-
-country_counts_without_US <- country_counts[country_counts$country != 'SAD',]
+country_counts_without_US <- country_counts_TOP10[country_counts_TOP10$country != 'SAD',]
 country_counts_without_US
 
 
 # Create a bar plot
-ggplot(country_counts, aes(x = country, y = total_sightings)) +
+ggplot(country_counts_TOP10, aes(x = country, y = total_sightings)) +
   geom_bar(stat = "identity", fill = "skyblue") +
-  labs(title = "UFO viđenja po državi",
+  labs(title = "UFO viđenja po TOP 10 država",
        x = "Država",
        y = "Broj UFO viđenja") +
   theme_minimal() +
@@ -165,7 +128,7 @@ ggsave("../figures/UFO_videnja_po_drzavi.jpg")
 # Create a bar plot
 ggplot(country_counts_without_US, aes(x = country, y = total_sightings)) +
   geom_bar(stat = "identity", fill = "skyblue") +
-  labs(title = "UFO viđenja po državi(bez SAD-a)",
+  labs(title = "UFO viđenja po TOP 10 država(bez SAD-a)",
        x = "Država",
        y = "Broj UFO viđenja") +
   theme_minimal() +
@@ -203,24 +166,12 @@ data$datetime <- as.POSIXct(data$datetime, "%m/%d/%Y %H:%M", tz="UTC")
 data$year <- lubridate::year(data$datetime)
 
 
-
+data <- data[data$country %in% c("SAD", "Kanada", "Velika Britanija", "Indija", "Australija", "Meksiko", "JAR", "Novi Zeland", "Irska", "Njemačka"),]
 
 # po državi i godini
 country_year_counts <- data %>%
   group_by(country, year) %>%
   summarise(total_sightings = n())
-
-country_year_counts
-
-
-#ak ima state onda je us pa dodajemo redu za us
-country_counts <- country_counts %>%
-  mutate(total_sightings = ifelse(country == "us", total_sightings + nrow(state_without_country_counts), total_sightings))
-
-#broj onih koji nemaju ni državu ni state stavljamo u zaseban red
-country_counts <- country_counts %>%
-  mutate(total_sightings = ifelse(country == "", nrow(no_country_counts), total_sightings),
-  country = ifelse(country == "", "NoCountry", country))
 
 country_year_counts
 
@@ -248,39 +199,26 @@ most_sightings_per_country <- country_year_counts %>%
 
 most_sightings_per_country
 
-
-
-country_decade_counts$country <- fct_recode(country_decade_counts$country,
-                                     "SAD" = "us",
-                                     "Nepoznato" = "NoCountry",
-                                     "Kanada" = "ca",
-                                     "Velika Britanija" = "gb",
-                                     "Austrija" = "au",
-                                     "Njemačka" = "de",
-                                     "District of Columbia" = "dc",
-                                     "South Australia" = "sa",
-                                     "Virgin Islands" = "vi",
-                                     "Nepoznato" = "")
-
-
-country_year_counts$country <- fct_recode(country_year_counts$country,
-                                     "SAD" = "us",
-                                     "Nepoznato" = "NoCountry",
-                                     "Kanada" = "ca",
-                                     "Velika Britanija" = "gb",
-                                     "Austrija" = "au",
-                                     "Njemačka" = "de",
-                                     "District of Columbia" = "dc",
-                                     "South Australia" = "sa",
-                                     "Virgin Islands" = "vi",
-                                     "Nepoznato" = "")
-
-
-
 ```
+
+```{r}
+country_decade_counts
+country_year_counts
+
+sorted_country_year <- country_year_counts[order(-country_year_counts$total_sightings), ]
+
+# Prikazivanje prvih 10 rezultata
+top_10_country_year <- head(sorted_country_year, 10)
+
+
+top_10_country_year
+```
+
+
+
 ```{r}
 #linijski graf država i broja viđenja u njima kroz goidne
-ggplot(country_year_counts,aes(year,total_sightings,color=country)) + geom_line() + scale_y_sqrt() + labs(x="Godina",y="Ukupan broj viđenja",color="Država",title = "Broj viđenja u godini po državama")
+ggplot(country_year_counts,aes(year,total_sightings,color=country)) + geom_line(size = 1) + scale_y_sqrt() + labs(x="Godina",y="Ukupan broj viđenja",color="Država",title = "Broj viđenja u godini po državama")
 
 ggsave("../figures/Broj_videnja_ugodini_podrzavi.png")
 
