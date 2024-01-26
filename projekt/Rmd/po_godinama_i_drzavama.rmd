@@ -227,6 +227,13 @@ ggsave("../figures/Broj_videnja_ugodini_podrzavi.png")
 
 ggplot(country_decade_counts %>% filter(decade >= 1950)  ,aes(decade,total_sightings,fill=country)) + geom_col(position = "dodge") +scale_y_sqrt() + labs(x="Godina",y="Ukupan broj viđenja",fill="Država",title = "Broj viđenja u desetljeću po državama")+ theme_minimal()
 ggsave("../figures/Broj_videnja_desetljecu_podrzavi.png")
+
+```
+```{r}
+# razodvlje utreke izmedu sad-a i sssr-a  
+country_year_counts %>% filter(year>=1960 & year<=1980 ) %>% ggplot(aes(year,total_sightings,color=country)) + geom_line(size = 1) + scale_y_sqrt() + labs(x="Godina",y="Ukupan broj viđenja",color="Država",title = "Broj viđenja u godini po državama u razdoblju 1960-80") + theme_minimal()
+
+ggsave("../figures/Broj_videnja_60/80_po_drzavi.png")
 ```
 
 
