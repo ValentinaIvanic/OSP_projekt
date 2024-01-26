@@ -1,0 +1,92 @@
+```{r}
+
+library(ggmap)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+
+us_state_names <- c("al" = "Alabama", "ak" = "Alaska", "az" = "Arizona", "ar" = "Arkansas", "ca" = "California",
+                 "co" = "Colorado", "ct" = "Connecticut", "de" = "Delaware", "fl" = "Florida", "ga" = "Georgia",
+                 "hi" = "Hawaii", "id" = "Idaho", "il" = "Illinois", "in" = "Indiana", "ia" = "Iowa",
+                 "ks" = "Kansas", "ky" = "Kentucky", "la" = "Louisiana", "me" = "Maine", "md" = "Maryland",
+                 "ma" = "Massachusetts", "mi" = "Michigan", "mn" = "Minnesota", "ms" = "Mississippi", "mo" = "Missouri",
+                 "mt" = "Montana", "ne" = "Nebraska", "nv" = "Nevada", "nh" = "New Hampshire", "nj" = "New Jersey",
+                 "nm" = "New Mexico", "ny" = "New York", "nc" = "North Carolina", "nd" = "North Dakota", "oh" = "Ohio",
+                 "ok" = "Oklahoma", "or" = "Oregon", "pa" = "Pennsylvania", "ri" = "Rhode Island", "sc" = "South Carolina",
+                 "sd" = "South Dakota", "tn" = "Tennessee", "tx" = "Texas", "ut" = "Utah", "vt" = "Vermont",
+                 "va" = "Virginia", "wa" = "Washington", "wv" = "West Virginia", "wi" = "Wisconsin", "wy" = "Wyoming")
+
+# Kreiranje rječnika za kanadske provincije i teritorije
+canada_province_names <- c("on" = "Ontario", "bc" = "British Columbia", "ab" = "Alberta", "qc" = "Quebec", "mb" = "Manitoba",
+                 "ns" = "Nova Scotia", "nb" = "New Brunswick", "sk" = "Saskatchewan",
+                 "pq" = "Quebec", "pr" = "Prince Edward Island", "nf" = "Newfoundland",
+                 "nt" = "Northwest Territories", "pe" = "Prince Edward Island", "yt" = "Yukon", "yk" = "Yukon")
+
+# Kreiranje rječnika za druge lokacije koje nisu ni SAD ni Kanada
+other_location_names <- c("dc" = "District of Columbia", "sa" = "South Australia", "vi" = "Virgin Islands")
+
+
+data <- read.csv("../data/complete.csv")
+
+```
+
+
+
+
+```{r}
+
+# Funkcija koja će prepoznati državu ili teritorij
+get_country <- function(state) {
+  if (tolower(state) %in% names(us_state_names)) {
+    return("us")
+  } else if (tolower(state) %in% names(canada_province_names)) {
+    return("ca")
+  } else {
+    return(state)
+  }
+}
+
+# Filtriranje podataka
+data <- data %>%
+  filter(state != "Nepoznato" & state != "") %>%
+  mutate(full_state = case_when(
+    tolower(state) %in% names(us_state_names) ~ us_state_names[tolower(state)],
+    tolower(state) %in% names(canada_province_names) ~ canada_province_names[tolower(state)],
+    tolower(state) %in% names(other_location_names) ~ other_location_names[tolower(state)],
+    TRUE ~ state
+  )) %>%
+  mutate(country = sapply(state, get_country))
+
+
+data
+
+```
+
+```{r}
+data
+
+data$country[grep("washington", data$city)] <-  "us"
+data
+```
+```{r}
+data$country[grep("(canada)", data$city)] <- "ca"
+data$country[grep("(australia)", data$city)] <- "australia"
+data$country[grep("(venezuela)", data$city)] <- "venezuela"
+data$country[grep("(south africa)", data$city)] <- "south africa"
+data$country[grep("(denmark)", data$city)] <- "denmark"
+data$country[grep("(u. s.)", data$city)] <- "us"
+data$country[data$city == "georgetown"] <- "Guyana"
+data$country[data$city == "na"] <- "Nepoznato"
+data$country[grep("puerto rico", data$city)] <- "Puerto Rico"
+
+
+data
+
+write.csv(data, "../data/countries_by_cities", row.names = FALSE)
+```
+
+
+
